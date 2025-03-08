@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Artwork, Comment, Rating, User } from '../types';
+import { Artwork, Comment, Rating, Bid, User } from '../types';
 import { useAuthStore } from './authStore';
 
 // Generate a unique string ID
@@ -11,6 +10,7 @@ interface ArtworkState {
   artworks: Artwork[];
   comments: Comment[];
   ratings: Rating[];
+  bids: Bid[];
   addArtwork: (artwork: Omit<Artwork, 'id' | 'createdAt' | 'rating' | 'ratingCount' | 'artist'>) => Artwork;
   updateArtwork: (id: string, updates: Partial<Artwork>) => void;
   deleteArtwork: (id: string) => void;
@@ -22,6 +22,11 @@ interface ArtworkState {
   addRating: (artworkId: string, value: number) => void;
   getUserRating: (artworkId: string, userId: string) => number;
   getAverageRating: (artworkId: string) => number;
+  placeBid: (artworkId: string, amount: number) => Bid | null;
+  getBidsByArtwork: (artworkId: string) => Bid[];
+  getHighestBid: (artworkId: string) => Bid | null;
+  getUserBids: (userId: string) => Bid[];
+  setArtworkForSale: (artworkId: string, forSale: boolean, startingPrice?: number, bidEndTime?: Date) => void;
 }
 
 export const useArtworkStore = create<ArtworkState>()(
@@ -30,6 +35,7 @@ export const useArtworkStore = create<ArtworkState>()(
       artworks: [],
       comments: [],
       ratings: [],
+      bids: [],
 
       addArtwork: (artworkData) => {
         const currentUser = useAuthStore.getState().user;
@@ -71,6 +77,7 @@ export const useArtworkStore = create<ArtworkState>()(
           artworks: state.artworks.filter(artwork => artwork.id !== id),
           comments: state.comments.filter(comment => comment.artworkId !== id),
           ratings: state.ratings.filter(rating => rating.artworkId !== id),
+          bids: state.bids.filter(bid => bid.artworkId !== id),
         }));
       },
 
@@ -169,6 +176,95 @@ export const useArtworkStore = create<ArtworkState>()(
         const artworkRatings = get().ratings.filter(rating => rating.artworkId === artworkId);
         if (artworkRatings.length === 0) return 0;
         return artworkRatings.reduce((sum, rating) => sum + rating.value, 0) / artworkRatings.length;
+      },
+
+      placeBid: (artworkId, amount) => {
+        const currentUser = useAuthStore.getState().user;
+        if (!currentUser) {
+          throw new Error('User must be logged in to place a bid');
+        }
+
+        const artwork = get().getArtworkById(artworkId);
+        if (!artwork) {
+          throw new Error('Artwork not found');
+        }
+
+        if (!artwork.forSale) {
+          throw new Error('This artwork is not for sale');
+        }
+
+        // Check if bid amount is higher than current bid or starting price
+        const currentBidAmount = artwork.currentBid || artwork.startingPrice || 0;
+        if (amount <= currentBidAmount) {
+          throw new Error(`Bid must be higher than current amount: ${currentBidAmount}`);
+        }
+
+        // Check if bidding period has ended
+        if (artwork.bidEndTime && new Date(artwork.bidEndTime) < new Date()) {
+          throw new Error('Bidding period has ended for this artwork');
+        }
+
+        const newBid: Bid = {
+          id: generateId(),
+          artworkId,
+          userId: currentUser.id,
+          user: currentUser,
+          amount,
+          createdAt: new Date(),
+        };
+
+        set(state => ({
+          bids: [...state.bids, newBid],
+          artworks: state.artworks.map(art => 
+            art.id === artworkId 
+              ? { ...art, currentBid: amount } 
+              : art
+          ),
+        }));
+
+        return newBid;
+      },
+
+      getBidsByArtwork: (artworkId) => {
+        return get().bids
+          .filter(bid => bid.artworkId === artworkId)
+          .sort((a, b) => b.amount - a.amount); // Sort by highest amount first
+      },
+
+      getHighestBid: (artworkId) => {
+        const bids = get().getBidsByArtwork(artworkId);
+        return bids.length > 0 ? bids[0] : null;
+      },
+
+      getUserBids: (userId) => {
+        return get().bids.filter(bid => bid.userId === userId);
+      },
+
+      setArtworkForSale: (artworkId, forSale, startingPrice, bidEndTime) => {
+        const artwork = get().getArtworkById(artworkId);
+        if (!artwork) {
+          throw new Error('Artwork not found');
+        }
+
+        // Verify the user is the artist or an admin
+        const currentUser = useAuthStore.getState().user;
+        if (!currentUser || (currentUser.id !== artwork.artistId && currentUser.role !== 'admin')) {
+          throw new Error('Only the artist or an admin can put artwork for sale');
+        }
+
+        set(state => ({
+          artworks: state.artworks.map(art => 
+            art.id === artworkId 
+              ? { 
+                  ...art, 
+                  forSale,
+                  startingPrice: forSale ? (startingPrice || art.startingPrice) : undefined,
+                  bidEndTime: forSale ? (bidEndTime || art.bidEndTime) : undefined,
+                  currentBid: forSale ? art.currentBid : undefined
+                } 
+              : art
+          ),
+        }));
       },
     }),
     {

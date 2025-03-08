@@ -8,7 +8,10 @@ import { toast } from '../hooks/use-toast';
 import Navbar from '../components/Navbar';
 import RatingComponent from '../components/RatingComponent';
 import CommentSection from '../components/CommentSection';
-import { ArrowLeft, Calendar, User, Trash2 } from 'lucide-react';
+import BidButton from '../components/BidButton';
+import BidHistory from '../components/BidHistory';
+import SaleSettings from '../components/SaleSettings';
+import { ArrowLeft, Calendar, User, Trash2, Gavel } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ArtworkDetail = () => {
@@ -44,6 +47,7 @@ const ArtworkDetail = () => {
   }
   
   const canDelete = user && (user.role === 'admin' || user.id === artwork.artistId);
+  const isArtist = user && user.id === artwork.artistId;
   
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this artwork? This action cannot be undone.')) {
@@ -73,7 +77,15 @@ const ArtworkDetail = () => {
             </Button>
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h1 className="text-3xl font-bold">{artwork.title}</h1>
+              <h1 className="text-3xl font-bold">
+                {artwork.title}
+                {artwork.forSale && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    <Gavel className="h-3 w-3 mr-1" />
+                    For Sale
+                  </span>
+                )}
+              </h1>
               
               {canDelete && (
                 <Button 
@@ -132,9 +144,26 @@ const ArtworkDetail = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Bid History */}
+              {artwork.forSale && (
+                <div className="mb-8">
+                  <BidHistory artworkId={id} />
+                </div>
+              )}
             </div>
             
             <div className="lg:col-span-1">
+              {/* Sale Settings (for artist only) */}
+              {isArtist && (
+                <SaleSettings artworkId={id} />
+              )}
+              
+              {/* Bid Button (for non-artists) */}
+              {artwork.forSale && (
+                <BidButton artworkId={id} />
+              )}
+              
               {/* Ratings */}
               <div className="bg-white p-6 border rounded-lg shadow-sm mb-8">
                 <h2 className="text-xl font-semibold mb-4">Rate this Artwork</h2>

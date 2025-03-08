@@ -23,6 +23,10 @@ export interface Artwork {
   rating: number;
   ratingCount: number;
   imageData?: string; // Base64 encoded image data
+  forSale?: boolean;
+  startingPrice?: number;
+  currentBid?: number;
+  bidEndTime?: Date;
 }
 
 export interface Comment {
@@ -39,5 +43,14 @@ export interface Rating {
   artworkId: string;
   userId: string;
   value: number;
+  createdAt: Date;
+}
+
+export interface Bid {
+  id: string;
+  artworkId: string;
+  userId: string;
+  user: User;
+  amount: number;
   createdAt: Date;
 }
