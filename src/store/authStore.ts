@@ -29,6 +29,46 @@ export const useAuthStore = create<AuthState>()(
           role: 'admin',
           name: 'Admin User',
         },
+        {
+          id: 'artist1',
+          username: 'FridaKarlo',
+          email: 'fridakarlo@artgallery.com',
+          role: 'artist',
+          name: 'Frida Karlo',
+          bio: 'Mexican artist known for her many portraits, self-portraits, and works inspired by nature and artifacts of Mexico.',
+        },
+        {
+          id: 'artist2',
+          username: 'PabloPicasso',
+          email: 'pablopicasso@artgallery.com',
+          role: 'artist',
+          name: 'Pablo Picasso',
+          bio: 'Spanish painter, sculptor, printmaker, ceramicist and theatre designer who spent most of his adult life in France.',
+        },
+        {
+          id: 'artist3',
+          username: 'JacksonPollock',
+          email: 'jacksonpollock@artgallery.com',
+          role: 'artist',
+          name: 'Jackson Pollock',
+          bio: 'American painter and a major figure in the abstract expressionist movement.',
+        },
+        {
+          id: 'artist4',
+          username: 'AndyWarhol',
+          email: 'andywarhol@artgallery.com',
+          role: 'artist',
+          name: 'Andy Warhol',
+          bio: 'American artist, film director, and producer who was a leading figure in the visual art movement known as pop art.',
+        },
+        {
+          id: 'artist5',
+          username: 'SalvadorDali',
+          email: 'salvadordali@artgallery.com',
+          role: 'artist',
+          name: 'Salvador Dali',
+          bio: 'Spanish surrealist artist renowned for his technical skill, precise draftsmanship, and the striking and bizarre images in his work.',
+        },
       ],
       isLoggedIn: false,
 
@@ -41,15 +81,18 @@ export const useAuthStore = create<AuthState>()(
             return { success: true, message: 'Admin login successful!' };
           }
         }
-
-        // For other users
-        const user = get().users.find(user => user.username === username);
         
-        // Simple password validation (in a real app, you'd check hashed passwords)
-        // For this demo, we'll accept any password for non-admin users that exist
-        if (user && user.role !== 'admin') {
-          set({ user, isLoggedIn: true });
-          return { success: true, message: 'Login successful!' };
+        // For artist accounts - the password is Password123 for all artists
+        if (password === 'Password123') {
+          // Check if username or email matches
+          const user = get().users.find(
+            user => user.username === username || user.email === username
+          );
+          
+          if (user) {
+            set({ user, isLoggedIn: true });
+            return { success: true, message: 'Login successful!' };
+          }
         }
 
         return { success: false, message: 'Invalid username or password' };
