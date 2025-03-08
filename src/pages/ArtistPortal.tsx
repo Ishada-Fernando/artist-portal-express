@@ -18,7 +18,8 @@ import { toast } from '../hooks/use-toast';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Navbar from '../components/Navbar';
 import ArtworkCard from '../components/ArtworkCard';
-import { PlusCircle, Image, UploadCloud, X } from 'lucide-react';
+import FileUpload from '../components/FileUpload';
+import { PlusCircle, UploadCloud, X } from 'lucide-react';
 
 const ArtistPortal = () => {
   const navigate = useNavigate();
@@ -27,10 +28,10 @@ const ArtistPortal = () => {
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   // Get artworks by the current artist
   const artistArtworks = user ? getArtworksByArtist(user.id) : [];
@@ -45,8 +46,21 @@ const ArtistPortal = () => {
   const handleRemoveCategory = (categoryToRemove: string) => {
     setCategories(categories.filter(c => c !== categoryToRemove));
   };
+
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file);
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -61,12 +75,26 @@ const ArtistPortal = () => {
         setLoading(false);
         return;
       }
+
+      if (!selectedFile) {
+        toast({
+          title: "Missing Artwork",
+          description: "Please upload an image for your artwork",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Convert the selected file to base64
+      const imageData = await convertFileToBase64(selectedFile);
       
       // Create new artwork
       const newArtwork = addArtwork({
         title,
         description,
-        imageUrl: imageUrl || 'https://via.placeholder.com/800x600?text=Artwork+Image',
+        imageUrl: 'placeholder', // Will be replaced by imageData
+        imageData, // Add the base64 data
         artistId: user!.id,
         categories,
       });
@@ -79,7 +107,7 @@ const ArtistPortal = () => {
       // Reset form
       setTitle('');
       setDescription('');
-      setImageUrl('');
+      setSelectedFile(null);
       setCategories([]);
       
       // Navigate to the new artwork
@@ -90,6 +118,7 @@ const ArtistPortal = () => {
         description: "An error occurred while submitting your artwork",
         variant: "destructive",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -150,22 +179,13 @@ const ArtistPortal = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <label htmlFor="imageUrl" className="text-sm font-medium">
-                          Image URL
+                        <label className="text-sm font-medium">
+                          Artwork Image
                         </label>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            id="imageUrl"
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="Enter image URL"
-                            disabled={loading}
-                          />
-                          <Image className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Enter a URL for your artwork image. If left blank, a placeholder will be used.
-                        </p>
+                        <FileUpload 
+                          onFileSelect={handleFileSelect}
+                          selectedFile={selectedFile}
+                        />
                       </div>
                       
                       <div className="space-y-2">

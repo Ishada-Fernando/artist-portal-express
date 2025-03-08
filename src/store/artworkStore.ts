@@ -37,6 +37,9 @@ export const useArtworkStore = create<ArtworkState>()(
           throw new Error('User must be logged in to add artwork');
         }
 
+        // Use the imageData if provided or fall back to imageUrl
+        const imageToUse = artworkData.imageData || artworkData.imageUrl;
+        
         const newArtwork: Artwork = {
           ...artworkData,
           id: generateId(),
@@ -45,6 +48,7 @@ export const useArtworkStore = create<ArtworkState>()(
           createdAt: new Date(),
           rating: 0,
           ratingCount: 0,
+          imageUrl: imageToUse
         };
 
         set(state => ({

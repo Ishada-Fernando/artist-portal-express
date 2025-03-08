@@ -22,6 +22,7 @@ export interface Artwork {
   categories: string[];
   rating: number;
   ratingCount: number;
+  imageData?: string; // Base64 encoded image data
 }
 
 export interface Comment {
