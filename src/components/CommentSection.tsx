@@ -1,12 +1,11 @@
-
 import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { useArtworkStore } from '../store/artworkStore';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { toast } from '../hooks/use-toast';
 import { format } from 'date-fns';
+import { useArtwork } from '../hooks/useArtwork';
 
 interface CommentSectionProps {
   artworkId: string;
@@ -15,7 +14,7 @@ interface CommentSectionProps {
 const CommentSection = ({ artworkId }: CommentSectionProps) => {
   const [comment, setComment] = useState('');
   const { isLoggedIn, user } = useAuthStore();
-  const { addComment, getCommentsByArtwork } = useArtworkStore();
+  const { addComment, getCommentsByArtwork } = useArtwork();
   
   const comments = getCommentsByArtwork(artworkId);
   

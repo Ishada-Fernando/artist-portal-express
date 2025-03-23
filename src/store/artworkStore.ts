@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Artwork, Comment, Rating, Bid, User } from '../types';
@@ -72,6 +71,58 @@ export const useArtworkStore = create<ArtworkState>()(
         ],
         bids: [],
 
+        getAllArtworks: () => {
+          return [...get().artworks];
+        },
+
+        getArtworkById: (id) => {
+          const artwork = get().artworks.find(artwork => artwork.id === id);
+          return artwork ? { ...artwork } : undefined;
+        },
+
+        getArtworksByArtist: (artistId) => {
+          return get().artworks
+            .filter(artwork => artwork.artistId === artistId)
+            .map(artwork => ({ ...artwork }));
+        },
+
+        getCommentsByArtwork: (artworkId) => {
+          return get().comments
+            .filter(comment => comment.artworkId === artworkId)
+            .map(comment => ({ ...comment }));
+        },
+
+        getUserRating: (artworkId, userId) => {
+          const rating = get().ratings.find(
+            rating => rating.artworkId === artworkId && rating.userId === userId
+          );
+          return rating ? rating.value : 0;
+        },
+
+        getAverageRating: (artworkId) => {
+          const artworkRatings = get().ratings.filter(rating => rating.artworkId === artworkId);
+          if (artworkRatings.length === 0) return 0;
+          return artworkRatings.reduce((sum, rating) => sum + rating.value, 0) / artworkRatings.length;
+        },
+
+        getBidsByArtwork: (artworkId) => {
+          return get().bids
+            .filter(bid => bid.artworkId === artworkId)
+            .sort((a, b) => b.amount - a.amount)
+            .map(bid => ({ ...bid }));
+        },
+
+        getHighestBid: (artworkId) => {
+          const bids = get().getBidsByArtwork(artworkId);
+          return bids.length > 0 ? { ...bids[0] } : null;
+        },
+
+        getUserBids: (userId) => {
+          return get().bids
+            .filter(bid => bid.userId === userId)
+            .map(bid => ({ ...bid }));
+        },
+
         addArtwork: (artworkData) => {
           // Instead of accessing useAuthStore directly, 
           // we'll expect the current user to be passed or check during the function call
@@ -121,18 +172,6 @@ export const useArtworkStore = create<ArtworkState>()(
           }));
         },
 
-        getArtworksByArtist: (artistId) => {
-          return get().artworks.filter(artwork => artwork.artistId === artistId);
-        },
-
-        getAllArtworks: () => {
-          return get().artworks;
-        },
-
-        getArtworkById: (id) => {
-          return get().artworks.find(artwork => artwork.id === id);
-        },
-
         addComment: (artworkId, content) => {
           const currentUser = window.localStorage.getItem('auth-storage') 
             ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
@@ -154,10 +193,6 @@ export const useArtworkStore = create<ArtworkState>()(
           set(state => ({
             comments: [...state.comments, newComment],
           }));
-        },
-
-        getCommentsByArtwork: (artworkId) => {
-          return get().comments.filter(comment => comment.artworkId === artworkId);
         },
 
         addRating: (artworkId, value) => {
@@ -211,19 +246,6 @@ export const useArtworkStore = create<ArtworkState>()(
           }));
         },
 
-        getUserRating: (artworkId, userId) => {
-          const rating = get().ratings.find(
-            rating => rating.artworkId === artworkId && rating.userId === userId
-          );
-          return rating ? rating.value : 0;
-        },
-
-        getAverageRating: (artworkId) => {
-          const artworkRatings = get().ratings.filter(rating => rating.artworkId === artworkId);
-          if (artworkRatings.length === 0) return 0;
-          return artworkRatings.reduce((sum, rating) => sum + rating.value, 0) / artworkRatings.length;
-        },
-
         placeBid: (artworkId, amount) => {
           const currentUser = window.localStorage.getItem('auth-storage') 
             ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
@@ -272,21 +294,6 @@ export const useArtworkStore = create<ArtworkState>()(
           }));
 
           return newBid;
-        },
-
-        getBidsByArtwork: (artworkId) => {
-          return get().bids
-            .filter(bid => bid.artworkId === artworkId)
-            .sort((a, b) => b.amount - a.amount); // Sort by highest amount first
-        },
-
-        getHighestBid: (artworkId) => {
-          const bids = get().getBidsByArtwork(artworkId);
-          return bids.length > 0 ? bids[0] : null;
-        },
-
-        getUserBids: (userId) => {
-          return get().bids.filter(bid => bid.userId === userId);
         },
 
         setArtworkForSale: (artworkId, forSale, startingPrice, bidEndTime) => {

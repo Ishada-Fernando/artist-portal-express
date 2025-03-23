@@ -1,6 +1,4 @@
-
 import { useState } from 'react';
-import { useArtworkStore } from '../store/artworkStore';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,13 +6,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from '../hooks/use-toast';
 import { Tag, Clock } from 'lucide-react';
+import { useArtwork } from '../hooks/useArtwork';
 
 interface SaleSettingsProps {
   artworkId: string;
 }
 
 const SaleSettings = ({ artworkId }: SaleSettingsProps) => {
-  const { getArtworkById, setArtworkForSale } = useArtworkStore();
+  const { getArtworkById, setArtworkForSale } = useArtwork();
   const { user } = useAuthStore();
   
   const artwork = getArtworkById(artworkId);

@@ -1,6 +1,4 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
-import { useArtworkStore } from '../store/artworkStore';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -13,12 +11,13 @@ import BidHistory from '../components/BidHistory';
 import SaleSettings from '../components/SaleSettings';
 import { ArrowLeft, Calendar, User, Trash2, Gavel } from 'lucide-react';
 import { format } from 'date-fns';
+import { useArtwork } from '../hooks/useArtwork';
 
 const ArtworkDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const { getArtworkById, deleteArtwork } = useArtworkStore();
+  const { getArtworkById, deleteArtwork } = useArtwork();
   const { user } = useAuthStore();
   
   if (!id) {

@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { useArtworkStore } from '../store/artworkStore';
 import { toast } from '../hooks/use-toast';
+import { useArtwork } from '../hooks/useArtwork';
 
 interface RatingComponentProps {
   artworkId: string;
@@ -12,7 +12,7 @@ interface RatingComponentProps {
 
 const RatingComponent = ({ artworkId, className = '' }: RatingComponentProps) => {
   const { user, isLoggedIn } = useAuthStore();
-  const { addRating, getUserRating } = useArtworkStore();
+  const { addRating, getUserRating } = useArtwork();
   
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
