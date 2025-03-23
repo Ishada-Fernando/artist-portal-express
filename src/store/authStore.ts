@@ -69,14 +69,6 @@ export const useAuthStore = create<AuthState>()(
           name: 'Salvador Dali',
           bio: 'Spanish surrealist artist renowned for his technical skill, precise draftsmanship, and the striking and bizarre images in his work.',
         },
-        {
-          id: 'artist6',
-          username: 'VincentVanGogh',
-          email: 'vincentvangogh@artgallery.com',
-          role: 'artist',
-          name: 'Vincent van Gogh',
-          bio: 'Dutch post-impressionist painter who posthumously became one of the most famous and influential figures in Western art history.',
-        },
       ],
       isLoggedIn: false,
 

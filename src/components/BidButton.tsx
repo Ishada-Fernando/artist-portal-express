@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useArtworkStore } from '../store/artworkStore';
 import { useAuthStore } from '../store/authStore';
 import { Gavel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,14 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { toast } from '../hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { useArtwork } from '../hooks/useArtwork';
 
 interface BidButtonProps {
   artworkId: string;
 }
 
 const BidButton = ({ artworkId }: BidButtonProps) => {
-  const { getArtworkById, placeBid, getHighestBid } = useArtwork();
+  const { getArtworkById, placeBid, getHighestBid } = useArtworkStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   

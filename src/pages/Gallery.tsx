@@ -1,14 +1,15 @@
+
 import { useState, useEffect } from 'react';
+import { useArtworkStore } from '../store/artworkStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ArtworkCard from '../components/ArtworkCard';
 import Navbar from '../components/Navbar';
 import { Search } from 'lucide-react';
-import { useArtwork } from '../hooks/useArtwork';
 
 const Gallery = () => {
-  const { artworks } = useArtwork();
+  const artworks = useArtworkStore(state => state.getAllArtworks());
   const [filteredArtworks, setFilteredArtworks] = useState([...artworks]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');

@@ -27,7 +27,6 @@ export interface Artwork {
   startingPrice?: number;
   currentBid?: number;
   bidEndTime?: Date;
-  year?: string; // Added year field for when the artwork was created
 }
 
 export interface Comment {
