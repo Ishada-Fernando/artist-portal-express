@@ -1,10 +1,20 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Artwork, Comment, Rating, Bid, User } from '../types';
-import { useAuthStore } from './authStore';
 
 // Generate a unique string ID
 const generateId = () => Math.random().toString(36).substring(2, 15);
+
+// Define a fixture for Van Gogh user to avoid circular dependency
+const vanGoghUser: User = {
+  id: 'artist6',
+  username: 'VincentVanGogh',
+  email: 'vincentvangogh@artgallery.com',
+  role: 'artist',
+  name: 'Vincent van Gogh',
+  bio: 'Dutch post-impressionist painter who posthumously became one of the most famous and influential figures in Western art history.',
+};
 
 interface ArtworkState {
   artworks: Artwork[];
@@ -32,16 +42,6 @@ interface ArtworkState {
 export const useArtworkStore = create<ArtworkState>()(
   persist(
     (set, get) => {
-      // Get Vincent van Gogh user for initialization
-      const vanGoghUser: User = {
-        id: 'artist6',
-        username: 'VincentVanGogh',
-        email: 'vincentvangogh@artgallery.com',
-        role: 'artist',
-        name: 'Vincent van Gogh',
-        bio: 'Dutch post-impressionist painter who posthumously became one of the most famous and influential figures in Western art history.',
-      };
-
       return {
         artworks: [
           {
@@ -73,7 +73,12 @@ export const useArtworkStore = create<ArtworkState>()(
         bids: [],
 
         addArtwork: (artworkData) => {
-          const currentUser = useAuthStore.getState().user;
+          // Instead of accessing useAuthStore directly, 
+          // we'll expect the current user to be passed or check during the function call
+          const currentUser = window.localStorage.getItem('auth-storage') 
+            ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
+            : null;
+            
           if (!currentUser) {
             throw new Error('User must be logged in to add artwork');
           }
@@ -129,7 +134,10 @@ export const useArtworkStore = create<ArtworkState>()(
         },
 
         addComment: (artworkId, content) => {
-          const currentUser = useAuthStore.getState().user;
+          const currentUser = window.localStorage.getItem('auth-storage') 
+            ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
+            : null;
+            
           if (!currentUser) {
             throw new Error('User must be logged in to add a comment');
           }
@@ -153,7 +161,10 @@ export const useArtworkStore = create<ArtworkState>()(
         },
 
         addRating: (artworkId, value) => {
-          const currentUser = useAuthStore.getState().user;
+          const currentUser = window.localStorage.getItem('auth-storage') 
+            ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
+            : null;
+            
           if (!currentUser) {
             throw new Error('User must be logged in to add a rating');
           }
@@ -214,7 +225,10 @@ export const useArtworkStore = create<ArtworkState>()(
         },
 
         placeBid: (artworkId, amount) => {
-          const currentUser = useAuthStore.getState().user;
+          const currentUser = window.localStorage.getItem('auth-storage') 
+            ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
+            : null;
+            
           if (!currentUser) {
             throw new Error('User must be logged in to place a bid');
           }
@@ -281,8 +295,11 @@ export const useArtworkStore = create<ArtworkState>()(
             throw new Error('Artwork not found');
           }
 
-          // Verify the user is the artist or an admin
-          const currentUser = useAuthStore.getState().user;
+          // Get current user from localStorage instead of using the hook
+          const currentUser = window.localStorage.getItem('auth-storage') 
+            ? JSON.parse(window.localStorage.getItem('auth-storage') || '{}')?.state?.user 
+            : null;
+            
           if (!currentUser || (currentUser.id !== artwork.artistId && currentUser.role !== 'admin')) {
             throw new Error('Only the artist or an admin can put artwork for sale');
           }
